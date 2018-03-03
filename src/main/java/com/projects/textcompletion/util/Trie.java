@@ -7,6 +7,7 @@ public class Trie {
 
     static class TrieNode {
         boolean isLeaf;
+        long frequency;
         Character data;
         Map<Character, TrieNode> next = new HashMap<>();
 
@@ -46,58 +47,71 @@ public class Trie {
         current.isLeaf = true;
     }
 
-    public Set<String> getSubTrie(String prefix) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        Set<String> result = new HashSet<>();
+    public TrieNode getSubTrie(String prefix) throws RuntimeException {
         if (prefix == null)
             throw new IllegalArgumentException("prefix cannot be null");
-        TrieNode current = root;
+        return walk(root, prefix);
+    }
+
+    private TrieNode walk(TrieNode current, String prefix) throws RuntimeException {
         for (int i = 0; i < prefix.length(); i++) {
             char c = prefix.charAt(i);
             current = current.get(c);
-            sb.append(c);
             if (current == null)
-                throw  new Exception("prefix does not exist");
+                throw  new RuntimeException("prefix does not exist");
         }
-//        sb.append(current.data);
-        dfs(current, sb, result);
+        return current;
+    }
+
+    public void updateFrequency(String string) throws RuntimeException {
+        TrieNode current = root;
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            current = current.get(c);
+            if (current == null)
+                throw  new RuntimeException("prefix does not exist");
+        }
+        if (!current.isLeaf)
+            throw  new RuntimeException("Leaf does not exist");
+        current.frequency += 1;
+    }
+
+    public static class Leaf {
+        long frequency;
+        String token;
+
+        Leaf(long frequency, String prefix) {
+            this.frequency = frequency;
+            this.token = prefix;
+        }
+
+        public long getFrequency() {
+            return frequency;
+        }
+
+        public String getToken() {
+            return token;
+        }
+    }
+
+    public List<Leaf> collectLeaves(String prefix) {
+        TrieNode node = getSubTrie(prefix);
+        if (node == null)
+            return Collections.emptyList();
+        List<Leaf> result = new ArrayList<>();
+        collectLeaves(node, new StringBuilder(prefix), result);
         return result;
     }
 
-    private void dfs(TrieNode node, StringBuilder sb, Set<String> result) {
+    private void collectLeaves(TrieNode node, StringBuilder sb, List<Leaf> leaves) {
         if (node == null)
             return;
         if (node.isLeaf)
-            result.add(sb.toString());
+            leaves.add(new Leaf(node.frequency, sb.toString()));
         for (Character key : node.nextSet()) {
             sb.append(key);
-            dfs(node.get(key), sb, result);
-            sb.deleteCharAt(sb.length()-1);
+            collectLeaves(node.get(key), sb, leaves);
+            sb.deleteCharAt(sb.length() - 1);
         }
     }
-
-    public TrieNode getRoot() {
-        return root;
-    }
-
-    public void setRoot(TrieNode root) {
-        this.root = root;
-    }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Trie)) return false;
-        Trie trie = (Trie) o;
-        return Objects.equals(root, trie.root);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(root);
-    }
-
-
 }

@@ -3,6 +3,7 @@ package com.projects.textcompletion.util;
 import org.junit.Test;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
@@ -16,7 +17,9 @@ public class TrieTest {
         trie.addEntry("abcc");
         trie.addEntry("abdd");
         trie.addEntry("hello");
-        Set<String> result = trie.getSubTrie("ab");
+        Set<String> result = trie.collectLeaves("ab")
+                .stream()
+                .map(Trie.Leaf::getToken).collect(Collectors.toSet());
         assertTrue(result.contains("abcd"));
         assertTrue(result.contains("abcc"));
         assertTrue(result.contains("abdd"));
